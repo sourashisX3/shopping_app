@@ -1,8 +1,10 @@
 package com.sourashis.meesho.presentation.viewModels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sourashis.meesho.common.HomeScreenState
+import com.sourashis.meesho.common.ResultState
 import com.sourashis.meesho.domain.models.CartDataModel
 import com.sourashis.meesho.domain.models.CategoryDataModel
 import com.sourashis.meesho.domain.models.ProductsDataModel
@@ -17,6 +19,7 @@ import com.sourashis.meesho.domain.useCase.GetAllSuggestedProductsUseCase
 import com.sourashis.meesho.domain.useCase.GetBannerUseCase
 import com.sourashis.meesho.domain.useCase.GetCartUseCase
 import com.sourashis.meesho.domain.useCase.GetCategoryLimitUseCase
+import com.sourashis.meesho.domain.useCase.GetCheckoutUseCase
 import com.sourashis.meesho.domain.useCase.GetProductByIdUseCase
 import com.sourashis.meesho.domain.useCase.GetProductsInLimitUseCase
 import com.sourashis.meesho.domain.useCase.GetSpecificCategoryItemsUseCase
@@ -26,6 +29,7 @@ import com.sourashis.meesho.domain.useCase.UpdateUserDataUseCase
 import com.sourashis.meesho.domain.useCase.UserProfileImageUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,7 +51,7 @@ class ShoppingAppViewModel @Inject constructor(
     private val getSpecificCategoryItemsUseCase: GetSpecificCategoryItemsUseCase,
     private val getAllProductsUseCase: GetAllProductUseCase,
     private val getAllCategoryUseCase: GetAllCategoryUseCase,
-    private val getCheckoutUseCase: GetProductByIdUseCase,
+    private val getCheckoutUseCase: GetCheckoutUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAllSuggestedProductsUseCase: GetAllSuggestedProductsUseCase,
 
@@ -106,9 +110,335 @@ class ShoppingAppViewModel @Inject constructor(
         viewModelScope.launch {
 
             getSpecificCategoryItemsUseCase.getSpecificCategoryItems(categoryId).collect {
+                when (it) {
 
+                    is ResultState.Error -> {
+                        _getSpecificCategoryItemsState.value =
+                            _getSpecificCategoryItemsState.value.copy(
+                                isLoading = false,
+                                errorMessage = it.message,
+                            )
+                    }
+
+                    ResultState.Loading -> {
+                        _getSpecificCategoryItemsState.value =
+                            _getSpecificCategoryItemsState.value.copy(
+                                isLoading = true
+                            )
+                    }
+
+                    is ResultState.Success -> {
+                        _getSpecificCategoryItemsState.value =
+                            _getSpecificCategoryItemsState.value.copy(
+                                isLoading = false,
+                                userData = it.data
+                            )
+                    }
+                }
             }
         }
+    }
+
+    fun getCheckoutData(productId: String) {
+        viewModelScope.launch {
+            getCheckoutUseCase.getCheckoutUseCase(productId).collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _getCheckoutState.value = _getCheckoutState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _getCheckoutState.value = _getCheckoutState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _getCheckoutState.value = _getCheckoutState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+
+        fun getCart() {
+            viewModelScope.launch {
+                getCartUseCase.getCart().collect {
+                    when (it) {
+                        is ResultState.Error -> {
+                            _getCartState.value = _getCartState.value.copy(
+                                isLoading = false,
+                                errorMessage = it.message
+                            )
+                        }
+
+                        is ResultState.Loading -> {
+                            _getCartState.value = _getCartState.value.copy(
+                                isLoading = true
+                            )
+                        }
+
+                        is ResultState.Success -> {
+                            _getCartState.value = _getCartState.value.copy(
+                                isLoading = false,
+                                userData = it.data
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun getAllCategories() {
+        viewModelScope.launch {
+            getAllCategoryUseCase.getAllCategoriesUseCase().collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _getAllCategoriesState.value = _getAllCategoriesState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _getAllCategoriesState.value = _getAllCategoriesState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _getAllCategoriesState.value = _getAllCategoriesState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getAllProducts() {
+        viewModelScope.launch {
+            getAllProductsUseCase.getAllProducts().collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _getAllProductsState.value = _getAllProductsState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _getAllProductsState.value = _getAllProductsState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _getAllProductsState.value = _getAllProductsState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getAllFav() {
+        viewModelScope.launch {
+            getAllFavUseCase.getAllFavUseCase().collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _getAllFavState.value = _getAllFavState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _getAllFavState.value = _getAllFavState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _getAllFavState.value = _getAllFavState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun addToFav(productsDataModel: ProductsDataModel) {
+        viewModelScope.launch {
+            addToFavUseCase.addToFav(productsDataModel).collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _addToFavState.value = _addToFavState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _addToFavState.value = _addToFavState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _addToFavState.value = _addToFavState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun getProductById(productId: String) {
+        viewModelScope.launch {
+            getProductByIdUseCase.getProductById(productId).collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _getProductsByIdState.value = _getProductsByIdState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _getProductsByIdState.value = _getProductsByIdState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _getProductsByIdState.value = _getProductsByIdState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun addToCart(cartDataModel: CartDataModel) {
+        viewModelScope.launch {
+            addToCartUseCase.addToCart(cartDataModel).collect {
+                when (it) {
+                    is ResultState.Error -> {
+                        _addToCartState.value = _addToCartState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+
+                    is ResultState.Loading -> {
+                        _addToCartState.value = _addToCartState.value.copy(
+                            isLoading = true
+                        )
+                    }
+
+                    is ResultState.Success -> {
+                        _addToCartState.value = _addToCartState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    init {
+        loadHomeScreenData()
+    }
+
+    fun loadHomeScreenData() {
+        viewModelScope.launch {
+            combine(
+                getCategoryLimitUseCase.getCategoryLimited(),
+                getCategoryLimitUseCase.getCategoryLimited(),
+                getBannerUseCase.getBannerUseCase()
+            ) { categoriesResult, productsResult, bannersResult ->
+                when {
+                    // Error
+                    categoriesResult is ResultState.Error -> {
+                        HomeScreenState(isLoading = false, errorMessage = categoriesResult.message)
+                    }
+
+                    productsResult is ResultState.Error -> {
+                        HomeScreenState(isLoading = false, errorMessage = productsResult.message)
+                    }
+
+                    bannersResult is ResultState.Error -> {
+                        HomeScreenState(isLoading = false, errorMessage = bannersResult.message)
+                    }
+
+                    // Success
+                    categoriesResult is ResultState.Success && productsResult is ResultState.Success && bannersResult is ResultState.Success -> {
+                        HomeScreenState(
+                            isLoading = false,
+                            categories = categoriesResult.data,
+                            products = productsResult.data,
+                            banners = bannersResult.data
+                        )
+
+                    }
+
+                    else -> {
+                        HomeScreenState(isLoading = true)
+                    }
+                }
+
+            }.collect { state ->
+                _homeScreenState.value = state
+            }
+        }
+    }
+
+    fun uploadUserProfileImage(uri: Uri) {
+        viewModelScope.launch {
+            userProfileImageUseCase.userProfileImageUseCase(uri).collect {
+                when(it) {
+                    is ResultState.Error -> {
+                        _userProfileImageState.value = _userProfileImageState.value.copy(
+                            isLoading = false,
+                            errorMessage = it.message
+                        )
+                    }
+                    is ResultState.Loading -> {
+                        _userProfileImageState.value = _userProfileImageState.value.copy(
+                            isLoading = true
+                        )
+                    }
+                    is ResultState.Success -> {
+                        _userProfileImageState.value = _userProfileImageState.value.copy(
+                            isLoading = false,
+                            userData = it.data
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun updateUserData(userDataParent: UserDataParent) {
+        // TODO: ****
     }
 }
 
