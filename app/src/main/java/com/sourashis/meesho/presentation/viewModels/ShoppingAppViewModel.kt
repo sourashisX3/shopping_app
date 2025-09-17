@@ -583,7 +583,7 @@ class ShoppingAppViewModel @Inject constructor(
         }
     }
 
-
+    
 }
 
 

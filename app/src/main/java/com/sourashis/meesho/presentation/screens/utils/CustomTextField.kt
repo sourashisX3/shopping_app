@@ -1,4 +1,4 @@
-package com.sourashis.meesho.presentation.utils
+package com.sourashis.meesho.presentation.screens.utils
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
